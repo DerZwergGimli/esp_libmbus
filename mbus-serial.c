@@ -97,78 +97,10 @@ int mbus_serial_connect(mbus_handle *handle) {
 // Set baud rate for serial connection
 //------------------------------------------------------------------------------
 int mbus_serial_set_baudrate(mbus_handle *handle, long baudrate) {
-    speed_t speed;
-    mbus_serial_data *serial_data;
-
     if (handle == NULL)
         return -1;
 
-    //serial_data = (mbus_serial_data *) handle->auxdata;
-
     ESP_ERROR_CHECK(uart_set_baudrate(UART_NUM_1, baudrate));
-
-//    if (serial_data == NULL)
-//        return -1;
-//
-//    switch (baudrate) {
-//        case 300:
-//            speed = B300;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 13; // Timeout in 1/10 sec
-//            break;
-//
-//        case 600:
-//            speed = B600;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 8;  // Timeout in 1/10 sec
-//            break;
-//
-//        case 1200:
-//            speed = B1200;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 5;  // Timeout in 1/10 sec
-//            break;
-//
-//        case 2400:
-//            speed = B2400;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 3;  // Timeout in 1/10 sec
-//            break;
-//
-//        case 4800:
-//            speed = B4800;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 3;  // Timeout in 1/10 sec
-//            break;
-//
-//        case 9600:
-//            speed = B9600;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 2;  // Timeout in 1/10 sec
-//            break;
-//
-//        case 19200:
-//            speed = B19200;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 2;  // Timeout in 1/10 sec
-//            break;
-//
-//        case 38400:
-//            speed = B38400;
-//            serial_data->t.c_cc[VTIME] = (cc_t) 2;  // Timeout in 1/10 sec
-//            break;
-//
-//        default:
-//            return -1; // unsupported baudrate
-//    }
-//
-//    // Set input baud rate
-//    if (cfsetispeed(&(serial_data->t), speed) != 0) {
-//        return -1;
-//    }
-//
-//    // Set output baud rate
-//    if (cfsetospeed(&(serial_data->t), speed) != 0) {
-//        return -1;
-//    }
-//
-//    // Change baud rate immediately
-//    if (tcsetattr(handle->fd, TCSANOW, &(serial_data->t)) != 0) {
-//        return -1;
-//    }
 
     return 0;
 }
@@ -182,13 +114,6 @@ int mbus_serial_disconnect(mbus_handle *handle) {
         return -1;
     }
 
-//    if (handle->fd < 0) {
-//        return -1;
-//    }
-
-
-    // close(handle->fd);
-//    handle->fd = -1;
 
     uart_driver_delete(UART_NUM_1);
 
@@ -223,18 +148,6 @@ int mbus_serial_send_frame(mbus_handle *handle, mbus_frame *frame) {
         return -1;
     }
 
-    // Make sure serial connection is open
-
-    //if (uart_is_driver_installed(UART_NUM_1)) {
-    //    fprintf(stderr, "uart is not installed!\n");
-    //    return -1;
-    //}
-
-//
-//    // Make sure serial connection is open
-//    if (isatty(handle->fd) == 0) {
-//        return -1;
-//    }
 
     if ((len = mbus_frame_pack(frame, buff, sizeof(buff))) == -1) {
         fprintf(stderr, "%s: mbus_frame_pack failed\n", __PRETTY_FUNCTION__);
@@ -263,23 +176,10 @@ int mbus_serial_send_frame(mbus_handle *handle, mbus_frame *frame) {
     }
 
 
-//    if ((ret = write(handle->fd, buff, len)) == len) {
-//        //
-//        // call the send event function, if the callback function is registered
-//        //
-//        if (handle->send_event)
-//            handle->send_event(MBUS_HANDLE_TYPE_SERIAL, buff, len);
-//    } else {
-//        fprintf(stderr, "%s: Failed to write frame to socket (ret = %d: %s)\n", __PRETTY_FUNCTION__, ret,
-//                strerror(errno));
-//        return -1;
-//    }
-
     //
     // wait until complete frame has been transmitted
     //
     uart_wait_tx_done(UART_NUM_1, pdMS_TO_TICKS(100));
-    //tcdrain(handle->fd);
 
     return 0;
 }
@@ -298,12 +198,6 @@ int mbus_serial_recv_frame(mbus_handle *handle, mbus_frame *frame) {
     }
     uart_wait_tx_done(UART_NUM_1, pdMS_TO_TICKS(100));
 
-    // Make sure serial connection is open
-    //if (isatty(handle->fd) == 0) {
-//    if (uart_is_driver_installed(UART_NUM_1)) {
-//        fprintf(stderr, "%s: Serial connection is not available.\n", __PRETTY_FUNCTION__);
-//        return MBUS_RECV_RESULT_ERROR;
-//    }
 
     memset((void *) buff, 0, sizeof(buff));
 
