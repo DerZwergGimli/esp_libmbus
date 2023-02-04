@@ -349,13 +349,12 @@ char
         if (buff == NULL)
             return NULL;
 
-        len += snprintf(&buff[len], buff_size - len, MBUS_XML_PROCESSING_INSTRUCTION);
 
-        len += snprintf(&buff[len], buff_size - len, "[\n\n");
+        len += snprintf(&buff[len], buff_size - len, "{\n\n");
 
         len += snprintf(&buff[len], buff_size - len, "%s",
                         mbus_data_variable_header_json(&(data->header)));
-
+        len += snprintf(&buff[len], buff_size - len, ",\"slave_data\": [\n");
         for (record = data->record, i = 0; record; record = record->next, i++) {
             if ((buff_size - len) < 1024) {
                 buff_size *= 2;
@@ -371,8 +370,12 @@ char
 
             len += snprintf(&buff[len], buff_size - len, "%s",
                             mbus_data_variable_record_json(record, i, -1, &(data->header)));
+            len += snprintf(&buff[len], buff_size - len, ",");
+
         }
-        len += snprintf(&buff[len], buff_size - len, "]\n");
+        //Remove last , from string
+        buff[len - 1] = ' ';
+        len += snprintf(&buff[len], buff_size - len, "]}\n");
 
         return buff;
     }
