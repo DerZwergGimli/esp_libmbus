@@ -26,21 +26,21 @@ char *mbus_frame_json(mbus_frame *frame) {
 
         if (frame_data.type == MBUS_DATA_TYPE_ERROR) {
             //
-            // generate XML for error
+            // generate JSON for error
             //
             return mbus_data_error_json(frame_data.error);
         }
 
         if (frame_data.type == MBUS_DATA_TYPE_FIXED) {
             //
-            // generate XML for fixed data
+            // generate JSON for fixed data
             //
             return mbus_data_fixed_json(&(frame_data.data_fix));
         }
 
         if (frame_data.type == MBUS_DATA_TYPE_VARIABLE) {
             //
-            // generate XML for a sequence of variable data frames
+            // generate JSON for a sequence of variable data frames
             //
 
             buff = (char *) malloc(buff_size);
@@ -50,7 +50,7 @@ char *mbus_frame_json(mbus_frame *frame) {
                 return NULL;
             }
 
-            // include frame counter in XML output if more than one frame
+            // include frame counter in JSON output if more than one frame
             // is available (frame_cnt = -1 => not included in output)
             frame_cnt = (frame->next == NULL) ? -1 : 0;
 
@@ -64,7 +64,7 @@ char *mbus_frame_json(mbus_frame *frame) {
                             mbus_data_variable_header_json(&(frame_data.data_var.header)));
 
             // loop through all records in the current frame, using a global
-            // record count as record ID in the XML output
+            // record count as record ID in the JSON output
             len += snprintf(&buff[len], buff_size - len, ",\"slave_data\": [\n");
             for (record = frame_data.data_var.record; record; record = record->next, record_cnt++) {
 
@@ -103,7 +103,7 @@ char *mbus_frame_json(mbus_frame *frame) {
                 }
 
                 // loop through all records in the current frame, using a global
-                // record count as record ID in the XML output
+                // record count as record ID in the JSON output
                 for (record = frame_data.data_var.record; record; record = record->next, record_cnt++) {
                     if ((buff_size - len) < 1024) {
                         buff_size *= 2;
@@ -338,6 +338,50 @@ mbus_data_fixed_json(mbus_data_fixed *data) {
     return NULL;
 }
 
+char
+*mbus_data_variable_json(mbus_data_variable *data) {
+    mbus_data_record *record;
+    char *buff = NULL, *new_buff;
+    size_t len = 0, buff_size = 8192;
+    int i;
+
+    if (data) {
+        buff = (char *) malloc(buff_size);
+
+        if (buff == NULL)
+            return NULL;
+
+        len += snprintf(&buff[len], buff_size - len, MBUS_XML_PROCESSING_INSTRUCTION);
+
+        len += snprintf(&buff[len], buff_size - len, "[\n\n");
+
+        len += snprintf(&buff[len], buff_size - len, "%s",
+                        mbus_data_variable_header_json(&(data->header)));
+
+        for (record = data->record, i = 0; record; record = record->next, i++) {
+            if ((buff_size - len) < 1024) {
+                buff_size *= 2;
+                new_buff = (char *) realloc(buff, buff_size);
+
+                if (new_buff == NULL) {
+                    free(buff);
+                    return NULL;
+                }
+
+                buff = new_buff;
+            }
+
+            len += snprintf(&buff[len], buff_size - len, "%s",
+                            mbus_data_variable_record_json(record, i, -1, &(data->header)));
+        }
+        len += snprintf(&buff[len], buff_size - len, "]\n");
+
+        return buff;
+    }
+
+    return NULL;
+}
+
 int
 mbus_str_json_encode(unsigned char *dst, const unsigned char *src, size_t max_len) {
     size_t i, len;
@@ -387,4 +431,23 @@ mbus_str_json_encode(unsigned char *dst, const unsigned char *src, size_t max_le
 
     dst[len] = '\0';
     return 0;
+}
+
+char *
+mbus_frame_data_json(mbus_frame_data *data) {
+    if (data) {
+        if (data->type == MBUS_DATA_TYPE_ERROR) {
+            return mbus_data_error_json(data->error);
+        }
+
+        if (data->type == MBUS_DATA_TYPE_FIXED) {
+            return mbus_data_fixed_json(&(data->data_fix));
+        }
+
+        if (data->type == MBUS_DATA_TYPE_VARIABLE) {
+            return mbus_data_variable_json(&(data->data_var));
+        }
+    }
+
+    return NULL;
 }
