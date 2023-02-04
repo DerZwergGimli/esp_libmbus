@@ -281,8 +281,6 @@ mbus_data_fixed_json(mbus_data_fixed *data) {
         if (buff == NULL)
             return NULL;
 
-        len += snprintf(&buff[len], buff_size - len, MBUS_XML_PROCESSING_INSTRUCTION);
-
         len += snprintf(&buff[len], buff_size - len, "{\n\n");
 
         len += snprintf(&buff[len], buff_size - len, "    \"slave_information\":{\n");
