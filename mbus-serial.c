@@ -99,7 +99,8 @@ int mbus_serial_connect(mbus_handle *handle) {
 int mbus_serial_set_baudrate(mbus_handle *handle, long baudrate) {
     if (handle == NULL)
         return -1;
-
+    if (baudrate <= 0)
+        return -1;
     ESP_ERROR_CHECK(uart_set_baudrate(UART_NUM_1, baudrate));
 
     return 0;

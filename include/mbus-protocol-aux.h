@@ -184,11 +184,12 @@ void mbus_register_found_event(mbus_handle *handle, void (*event)(mbus_handle *h
 /**
  * Allocate and initialize M-Bus serial context.
  *
- * @param device Serial device (like /dev/ttyUSB0 or /dev/ttyS0)
+ * @param rx_pin Serial device RX_PIN
+ * @param tx_pin Serial device TX_PIN
  *
  * @return Initialized "unified" handler when successful, NULL otherwise;
  */
-mbus_handle *mbus_context_serial(const char *device);
+mbus_handle *mbus_context_serial(int rx_pin, int tx_pin);
 
 /**
  * Allocate and initialize M-Bus TCP context.

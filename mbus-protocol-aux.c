@@ -1411,7 +1411,7 @@ mbus_frame_data_xml_normalized(mbus_frame_data *data) {
 }
 
 mbus_handle *
-mbus_context_serial(const char *device) {
+mbus_context_serial(int rx_pin, int tx_pin) {
     mbus_handle *handle;
     mbus_serial_data *serial_data;
     char error_str[128];
@@ -1443,7 +1443,7 @@ mbus_context_serial(const char *device) {
     handle->scan_progress = NULL;
     handle->found_event = NULL;
 
-    if ((serial_data->device = strdup(device)) == NULL) {
+    if ((serial_data->device = strdup("UART")) == NULL) {
         //ESP_LOGE(MBUS_PROTOCOL_AUX, "%s: failed to allocate memory for device\n", __PRETTY_FUNCTION__);
         snprintf(error_str, sizeof(error_str), "%s: failed to allocate memory for device\n", __PRETTY_FUNCTION__);
         mbus_error_str_set(error_str);
