@@ -6,6 +6,7 @@ idf_component_register(SRCS
         "mbus-tcp.c"
         "mbus-serial.c"
         "mbus-json.c"
+        "mbus-mqtt.c"
         INCLUDE_DIRS "include"
         PRIV_REQUIRES driver freertos)
 

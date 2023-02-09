@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "mbus-json.h"
+#include "mqtt_manager.h"
 
 char *mbus_frame_json(mbus_frame *frame) {
     mbus_frame_data frame_data;
@@ -187,6 +188,8 @@ char *mbus_data_variable_record_json(mbus_data_record *record, int record_cnt, i
     long tariff;
 
     if (record) {
+
+
         if (frame_cnt >= 0) {
             len += snprintf(&buff[len], sizeof(buff) - len,
                             "    { \"id\":%d,\n\"frame\":%d,\n",
@@ -436,6 +439,7 @@ mbus_str_json_encode(unsigned char *dst, const unsigned char *src, size_t max_le
 
 char *
 mbus_frame_data_json(mbus_frame_data *data) {
+
     if (data) {
         if (data->type == MBUS_DATA_TYPE_ERROR) {
             return mbus_data_error_json(data->error);

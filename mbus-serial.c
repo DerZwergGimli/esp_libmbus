@@ -24,6 +24,7 @@
 #include "mbus-serial.h"
 #include "mbus-protocol-aux.h"
 #include "mbus-protocol.h"
+#include "mqtt_manager.h"
 
 
 //static const int PACKET_BUFF_SIZE = 1024 * 2;
@@ -197,6 +198,8 @@ int mbus_serial_recv_frame(mbus_handle *handle, mbus_frame *frame) {
         fprintf(stderr, "%s: Invalid parameter.\n", __PRETTY_FUNCTION__);
         return MBUS_RECV_RESULT_ERROR;
     }
+
+
     uart_wait_tx_done(UART_NUM_1, pdMS_TO_TICKS(100));
 
 
