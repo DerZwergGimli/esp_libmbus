@@ -17,7 +17,7 @@ static long long int mbus_data_variable_header_mqtt(mbus_data_variable_header *h
 
         mqtt_message_t message;
         char base_topic[20];
-        sprintf(base_topic, "%llX/", mbus_data_bcd_decode_hex(header->id_bcd, 4));
+        sprintf(base_topic, "/%llX/", mbus_data_bcd_decode_hex(header->id_bcd, 4));
         char buffer[800];
 
         //ID
@@ -96,7 +96,7 @@ static void mbus_data_variable_record_mqtt(mbus_data_record *record, int record_
     if (record) {
         mqtt_message_t message;
         char base_topic[20];
-        sprintf(base_topic, "%llX/slave_data/%d/", mbus_data_bcd_decode_hex(header->id_bcd, 4), record_cnt);
+        sprintf(base_topic, "/%llX/slave_data/%d/", mbus_data_bcd_decode_hex(header->id_bcd, 4), record_cnt);
         char buffer[800];
 
 
@@ -221,7 +221,7 @@ mbus_data_fixed_mqtt(mbus_data_fixed *data) {
     if (data) {
         mqtt_message_t message;
         char base_topic[20];
-        sprintf(base_topic, "%llX/", mbus_data_bcd_decode_hex(data->id_bcd, 4));
+        sprintf(base_topic, "/%llX/", mbus_data_bcd_decode_hex(data->id_bcd, 4));
         char buffer[800];
 
         //id
@@ -252,7 +252,7 @@ mbus_data_fixed_mqtt(mbus_data_fixed *data) {
         strcpy(message.message, buffer);
         send_message_async(message);
 
-        sprintf(base_topic, "%llX/salve_data/0", mbus_data_bcd_decode_hex(data->id_bcd, 4));
+        sprintf(base_topic, "/%llX/salve_data/0", mbus_data_bcd_decode_hex(data->id_bcd, 4));
 
         //function
         mbus_str_json_encode(str_encoded, mbus_data_fixed_function(data->status), sizeof(str_encoded));
@@ -288,7 +288,7 @@ mbus_data_fixed_mqtt(mbus_data_fixed *data) {
         }
 
 
-        sprintf(base_topic, "%llX/salve_data/1", mbus_data_bcd_decode_hex(data->id_bcd, 4));
+        sprintf(base_topic, "/%llX/salve_data/1", mbus_data_bcd_decode_hex(data->id_bcd, 4));
         //function
         mbus_str_json_encode(str_encoded, mbus_data_fixed_function(data->status), sizeof(str_encoded));
         strcpy(message.topic, base_topic);
