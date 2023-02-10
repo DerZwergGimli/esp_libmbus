@@ -4,6 +4,9 @@
 
 #ifndef LOGME_INTERFACE_MQTT_MANAGER_H
 #define LOGME_INTERFACE_MQTT_MANAGER_H
+
+#include "mbus-protocol.h"
+
 typedef struct mqtt_message_t {
     char topic[50];
     char message[800];
