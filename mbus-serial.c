@@ -38,7 +38,7 @@ int mbus_serial_wakeup(mbus_handle *handle) {
     uart_config_t uart_config = {
             .baud_rate = 2400,
             .data_bits = UART_DATA_8_BITS,
-            .parity    = UART_PARITY_DISABLE,
+            .parity    = UART_PARITY_EVEN,
             .stop_bits = UART_STOP_BITS_1,
             .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
             .source_clk = UART_SCLK_DEFAULT,
