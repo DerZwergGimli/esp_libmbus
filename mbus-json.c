@@ -189,7 +189,7 @@ char *mbus_data_variable_record_json(mbus_data_record *record, int record_cnt, i
 
     if (record) {
 
-
+        
         if (frame_cnt >= 0) {
             len += snprintf(&buff[len], sizeof(buff) - len,
                             "    { \"id\":%d,\n\"frame\":%d,\n",
