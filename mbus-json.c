@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "mbus-json.h"
 #include "mqtt_manager.h"
+#include "mbus-protocol-aux.h"
 
 char *mbus_frame_json(mbus_frame *frame) {
     mbus_frame_data frame_data;
@@ -152,22 +153,22 @@ char *mbus_data_variable_header_json(mbus_data_variable_header *header) {
     if (header) {
         len += snprintf(&buff[len], sizeof(buff) - len, "\"salve_info\": {\n");
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"id:\": %llX,\n",
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"id\": %llX,\n",
                         mbus_data_bcd_decode_hex(header->id_bcd, 4));
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"manufacturer:\": \"%s\",\n",
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"manufacturer\": \"%s\",\n",
                         mbus_decode_manufacturer(header->manufacturer[0], header->manufacturer[1]));
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"version:\": %d,\n", header->version);
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"version\": %d,\n", header->version);
 
         mbus_str_json_encode(str_encoded, mbus_data_product_name(header), sizeof(str_encoded));
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"product_name:\": \"%s\",\n", str_encoded);
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"product_name\": \"%s\",\n", str_encoded);
 
         mbus_str_json_encode(str_encoded, mbus_data_variable_medium_lookup(header->medium), sizeof(str_encoded));
 
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"medium:\": \"%s\",\n", str_encoded);
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"access_number:\": %d,\n", header->access_no);
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"status:\": \"%.2X\",\n", header->status);
-        len += snprintf(&buff[len], sizeof(buff) - len, "\"signature:\": \"%.2X%.2X\"\n",
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"medium\": \"%s\",\n", str_encoded);
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"access_number\": %d,\n", header->access_no);
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"status\": \"%.2X\",\n", header->status);
+        len += snprintf(&buff[len], sizeof(buff) - len, "\"signature\": \"%.2X%.2X\"\n",
                         header->signature[1], header->signature[0]);
 
         len += snprintf(&buff[len], sizeof(buff) - len, "}\n\n");
@@ -189,7 +190,7 @@ char *mbus_data_variable_record_json(mbus_data_record *record, int record_cnt, i
 
     if (record) {
 
-        
+
         if (frame_cnt >= 0) {
             len += snprintf(&buff[len], sizeof(buff) - len,
                             "    { \"id\":%d,\n\"frame\":%d,\n",
@@ -386,6 +387,90 @@ char
     return NULL;
 }
 
+char *
+mbus_data_variable_json_normalized(mbus_data_variable *data) {
+    mbus_data_record *record;
+    mbus_record *norm_record;
+    char *buff = NULL, *new_buff = NULL;
+    char str_encoded[768] = "";
+    size_t len = 0, buff_size = 8192;
+    size_t i;
+
+    if (data) {
+        buff = (char *) malloc(buff_size);
+
+        if (buff == NULL)
+            return NULL;
+
+
+        len += snprintf(&buff[len], buff_size - len, "{\n\n");
+
+        len += snprintf(&buff[len], buff_size - len, "%s",
+                        mbus_data_variable_header_json(&(data->header)));
+        len += snprintf(&buff[len], buff_size - len, ",\"slave_data\": [\n");
+
+        for (record = data->record, i = 0; record; record = record->next, i++) {
+            norm_record = mbus_parse_variable_record(record);
+
+            if ((buff_size - len) < 1024) {
+                buff_size *= 2;
+                new_buff = (char *) realloc(buff, buff_size);
+
+                if (new_buff == NULL) {
+                    mbus_record_free(norm_record);
+                    free(buff);
+                    return NULL;
+                }
+
+                buff = new_buff;
+            }
+
+            len += snprintf(&buff[len], buff_size - len, "{");
+            if (norm_record != NULL) {
+                len += snprintf(&buff[len], buff_size - len, "\"id\": %i,\n", i);
+
+                mbus_str_xml_encode(str_encoded, norm_record->function_medium, sizeof(str_encoded));
+                len += snprintf(&buff[len], buff_size - len, "\"function\":\"%s\",\n", str_encoded);
+
+                len += snprintf(&buff[len], buff_size - len, "        \"storage_number\": %ld,\n",
+                                norm_record->storage_number);
+
+                if (norm_record->tariff >= 0) {
+                    len += snprintf(&buff[len], buff_size - len, "        \"tariff\": %ld,\n", norm_record->tariff);
+                    len += snprintf(&buff[len], buff_size - len, "        \"device\": %d,\n", norm_record->device);
+                }
+
+                mbus_str_xml_encode(str_encoded, norm_record->unit, sizeof(str_encoded));
+
+                len += snprintf(&buff[len], buff_size - len, "        \"unit\": \"%s\",\n", str_encoded);
+
+                mbus_str_xml_encode(str_encoded, norm_record->quantity, sizeof(str_encoded));
+                len += snprintf(&buff[len], buff_size - len, "        \"quantity\": \"%s\",\n", str_encoded);
+
+
+                if (norm_record->is_numeric) {
+                    len += snprintf(&buff[len], buff_size - len, "        \"value\": %f\n",
+                                    norm_record->value.real_val);
+                } else {
+                    mbus_str_xml_encode(str_encoded, norm_record->value.str_val.value, sizeof(str_encoded));
+                    len += snprintf(&buff[len], buff_size - len, "        \"value\": \"%s\"\n", str_encoded);
+                }
+
+                mbus_record_free(norm_record);
+            }
+            len += snprintf(&buff[len], buff_size - len, "},");
+
+        }
+        //Remove last , from string
+        buff[len - 1] = ' ';
+        len += snprintf(&buff[len], buff_size - len, "]}\n");
+
+        return buff;
+    }
+
+    return NULL;
+}
+
 int
 mbus_str_json_encode(unsigned char *dst, const unsigned char *src, size_t max_len) {
     size_t i, len;
@@ -450,7 +535,8 @@ mbus_frame_data_json(mbus_frame_data *data) {
         }
 
         if (data->type == MBUS_DATA_TYPE_VARIABLE) {
-            return mbus_data_variable_json(&(data->data_var));
+            //return mbus_data_variable_json(&(data->data_var));
+            return mbus_data_variable_json_normalized(&(data->data_var));
         }
     }
 
